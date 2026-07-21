@@ -13,10 +13,10 @@
   <style>
     /* ---------- 竖版画布:iPhone 16 Pro 逻辑分辨率 402 × 874 ---------- */
     :root {
-      --r-main-font-size: 21px;
+      --r-main-font-size: 24px;
       --r-heading1-size: 1.62em;
-      --r-heading2-size: 1.24em;
-      --r-heading3-size: 1.05em;
+      --r-heading2-size: 1.26em;
+      --r-heading3-size: 1.06em;
       --r-heading-line-height: 1.25;
       --accent: #2a76dd;
       --muted: #6b7280;
@@ -91,19 +91,23 @@
     .reveal h1, .reveal h2, .reveal h3 { font-weight: 600; letter-spacing: 0.01em; margin-bottom: 0.5em; }
     .reveal section { text-align: left; }
     .reveal section.center { text-align: center; }
-    .reveal p { line-height: 1.5; margin: 0.5em 0; }
+    .reveal p { line-height: 1.55; margin: 0.6em 0; }
     .reveal ul, .reveal ol { display: block; margin-left: 1.1em; }
-    .reveal li { margin-bottom: 0.42em; line-height: 1.45; }
-    .reveal .subtitle { color: var(--muted); font-size: 0.72em; line-height: 1.5; }
+    .reveal li { margin-bottom: 0.55em; line-height: 1.5; }
+    .reveal .subtitle { color: var(--muted); font-size: 0.72em; line-height: 1.55; }
     .reveal .dark-bg, .reveal .dark-bg h1, .reveal .dark-bg h2, .reveal .dark-bg p { color: #fff; }
 
-    /* 顶部给灵动岛让出安全区 */
-    .reveal .slides section { padding-top: 1.4em; }
+    /* center:true 下内容整体垂直居中,上下 padding 对称,
+       并给刘海/灵动岛与 home indicator 让出安全区 */
+    .reveal .slides section {
+      padding-top: calc(0.8em + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(0.8em + env(safe-area-inset-bottom, 0px));
+    }
 
     .reveal code { font-family: "SF Mono", Menlo, Consolas, monospace; }
     .reveal pre {
       width: 100%; box-shadow: none; margin: 0.6em 0;
-      font-size: 13px; line-height: 1.42;
+      font-size: 14px; line-height: 1.45;
     }
     .reveal pre code { padding: 0.85em 0.9em; border-radius: 9px; max-height: 380px; }
 
@@ -363,20 +367,31 @@ theme/moon.css    theme/dracula.css</code></pre>
   import Markdown from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.esm.js';
   import Math from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.esm.js';
 
+  // 手机竖屏全屏时,把画布高度改成与设备同比例,
+  // 否则 402×874 与屏幕比例不一致,reveal 会等比缩放并在上下/左右留出黑边。
+  // 画布宽固定 402,字号因此始终按屏幕宽度等比缩放,不会在小屏上过大。
+  const W = 402;
+  function canvasHeight() {
+    const phonePortrait = window.matchMedia('(orientation: portrait) and (max-width: 620px)').matches;
+    if (!phonePortrait) return 874;          // 桌面/平板:保持 iPhone 16 Pro 的机身比例
+    const h = Math.round(W * window.innerHeight / window.innerWidth);
+    return Math.max(620, Math.min(1000, h)); // 夹住极端比例,避免内容被压扁或拉散
+  }
+
   Reveal.initialize({
     // 幻灯片装在 .phone 容器里而不是整个页面,必须开 embedded:
     // 否则 reveal 用 document.body 当 viewport 算缩放,内容会被容器裁掉。
     embedded: true,
 
-    // iPhone 16 Pro 竖版逻辑分辨率
-    width: 402,
-    height: 874,
+    width: W,
+    height: canvasHeight(),
     margin: 0.05,
     minScale: 0.2,
     maxScale: 2.0,
 
     hash: true,
-    center: false,
+    // 内容在画布内垂直居中 —— 否则内容顶到上方,下面全是空白
+    center: true,
     transition: 'slide',
     slideNumber: 'c/t',
     controls: true,
@@ -390,6 +405,11 @@ theme/moon.css    theme/dracula.css</code></pre>
         { left: '$', right: '$', display: false }
       ]
     }
+  });
+
+  // 转屏、地址栏收缩都会改变可见高度,让画布比例跟着走,避免重新出现留白
+  window.addEventListener('resize', () => {
+    Reveal.configure({ height: canvasHeight() });
   });
 </script>
 </body>
