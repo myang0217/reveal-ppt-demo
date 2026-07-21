@@ -12,6 +12,9 @@
 
   <style>
     :root {
+      /* 主题默认 42px 在 1280×720 下会让内容最多的页(快捷键页)溢出底部,
+         降到 36px 给每页留出余量 */
+      --r-main-font-size: 36px;
       --accent: #2a76dd;
       --muted: #6b7280;
     }
@@ -258,6 +261,19 @@ theme/moon.css    theme/solarized.css   theme/dracula.css</code></pre>
         { left: '$', right: '$', display: false }
       ]
     }
+  }).then(() => {
+    // 兜底:哪一页内容仍高于画布,就按比例缩到刚好放下,避免底部被截。
+    // 未显示的页 display:none 量不到高度,所以在每页显示时才测。
+    function fitSlide(slide) {
+      if (!slide || slide.querySelector(':scope > section')) return;  // 跳过纵向堆叠容器
+      slide.style.zoom = '';                                          // 先还原再测量
+      const avail = Reveal.getConfig().height;
+      const h = slide.scrollHeight;
+      if (h > avail) slide.style.zoom = Math.max(0.55, avail / h).toFixed(4);
+    }
+    fitSlide(Reveal.getCurrentSlide());
+    Reveal.on('slidechanged', e => fitSlide(e.currentSlide));
+    window.addEventListener('resize', () => fitSlide(Reveal.getCurrentSlide()));
   });
 </script>
 </body>
