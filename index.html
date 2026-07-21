@@ -25,8 +25,11 @@
 
     html, body { height: 100%; margin: 0; }
 
-    /* 桌面上把幻灯片装进一台 iPhone;背景要盖过主题给 .reveal-viewport 的白底 */
-    html.reveal-viewport, body {
+    /* 桌面上把幻灯片装进一台 iPhone。
+       注意:必须配合 JS 里的 embedded:true —— 否则 reveal 会把 <body> 当作 viewport,
+       按窗口尺寸缩放内容,再被 .phone 的 overflow:hidden 裁掉,页面看上去就"只剩一页"。
+       embedded 模式下 .reveal-viewport 这个 class 落在 .reveal 上,不会污染 body 背景。 */
+    html, body {
       background: radial-gradient(ellipse at 50% 0%, #26262b 0%, #131316 70%);
     }
     body {
@@ -82,6 +85,8 @@
       font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC",
                    "Source Han Sans SC", "Helvetica Neue", Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
+      /* embedded 下 .reveal-viewport(line-height:1)落在本元素上,这里显式压回来 */
+      line-height: 1.45;
     }
     .reveal h1, .reveal h2, .reveal h3 { font-weight: 600; letter-spacing: 0.01em; margin-bottom: 0.5em; }
     .reveal section { text-align: left; }
@@ -127,12 +132,23 @@
     .reveal .progress { height: 3px; }
     .reveal .slide-number { font-size: 11px; bottom: 16px; right: 10px; background: none; color: var(--muted); }
 
-    /* 导出 PDF(?print-pdf)时脱掉手机外壳,让 reveal 自己控制页面尺寸 */
+    /* 导出 PDF:reveal 在 ?print-pdf 下给 <html> 加 .reveal-print 并重排成分页,
+       此时必须脱掉手机外壳,否则固定尺寸的 .phone 会把分页内容裁掉。 */
+    html.reveal-print body { display: block; background: #fff; }
+    html.reveal-print body > .phone {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: 0; box-shadow: none; overflow: visible;
+    }
+    html.reveal-print .island,
+    html.reveal-print .home-bar,
+    html.reveal-print .hint { display: none; }
+
     @media print {
       .hint, .island, .home-bar { display: none; }
-      body { display: block; }
+      body { display: block; background: #fff; }
       body > .phone {
-        width: 100%; height: 100%;
+        width: 100%; height: auto;
         border-radius: 0; box-shadow: none; overflow: visible;
       }
     }
@@ -348,6 +364,10 @@ theme/moon.css    theme/dracula.css</code></pre>
   import Math from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.esm.js';
 
   Reveal.initialize({
+    // 幻灯片装在 .phone 容器里而不是整个页面,必须开 embedded:
+    // 否则 reveal 用 document.body 当 viewport 算缩放,内容会被容器裁掉。
+    embedded: true,
+
     // iPhone 16 Pro 竖版逻辑分辨率
     width: 402,
     height: 874,
