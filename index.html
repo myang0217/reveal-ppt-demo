@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>reveal.js 是怎么回事</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>reveal.js 竖版幻灯片</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
@@ -11,229 +11,334 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
 
   <style>
+    /* ---------- 竖版画布:iPhone 16 Pro 逻辑分辨率 402 × 874 ---------- */
     :root {
+      --r-main-font-size: 21px;
+      --r-heading1-size: 1.62em;
+      --r-heading2-size: 1.24em;
+      --r-heading3-size: 1.05em;
+      --r-heading-line-height: 1.25;
       --accent: #2a76dd;
       --muted: #6b7280;
+      --ratio: calc(402 / 874);
     }
+
+    html, body { height: 100%; margin: 0; }
+
+    /* 桌面上把幻灯片装进一台 iPhone;背景要盖过主题给 .reveal-viewport 的白底 */
+    html.reveal-viewport, body {
+      background: radial-gradient(ellipse at 50% 0%, #26262b 0%, #131316 70%);
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+
+    /* 用 body > .phone 提高特异性,压过 reveal 加到本元素上的 .reveal-viewport 尺寸规则 */
+    body > .phone {
+      position: relative;
+      --h: min(874px, 90vh);
+      height: var(--h);
+      width: calc(var(--h) * 402 / 874);
+      border-radius: calc(var(--h) * 0.062);
+      overflow: hidden;
+      background: #fff;
+      box-shadow:
+        0 0 0 9px #303034,
+        0 0 0 11px #78787e,
+        0 22px 55px rgba(0, 0, 0, 0.6);
+    }
+
+    /* 灵动岛 */
+    .island {
+      position: absolute; z-index: 40;
+      top: calc(var(--h) * 0.014); left: 50%; transform: translateX(-50%);
+      width: calc(var(--h) * 0.13); height: calc(var(--h) * 0.037);
+      background: #000; border-radius: 999px; pointer-events: none;
+      opacity: 0.88;
+    }
+    /* 底部 home indicator */
+    .home-bar {
+      position: absolute; z-index: 40;
+      bottom: calc(var(--h) * 0.009); left: 50%; transform: translateX(-50%);
+      width: 34%; height: 4px; border-radius: 999px;
+      background: rgba(0, 0, 0, 0.32); pointer-events: none;
+      mix-blend-mode: difference;
+    }
+
+    /* 真手机 / 小窗口:铺满,不画外壳 */
+    @media (max-width: 620px), (max-height: 560px) {
+      body { display: block; }
+      body > .phone {
+        --h: 100vh;
+        width: 100vw; height: 100vh; height: 100dvh;
+        border-radius: 0; box-shadow: none;
+      }
+      .island, .home-bar { display: none; }
+    }
+
+    /* ---------- 竖版排版 ---------- */
     .reveal {
       font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC",
                    "Source Han Sans SC", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
-    .reveal h1, .reveal h2, .reveal h3 { font-weight: 600; letter-spacing: 0.02em; }
-    .reveal h1 { font-size: 2.2em; }
-    .reveal h2 { font-size: 1.5em; }
+    .reveal h1, .reveal h2, .reveal h3 { font-weight: 600; letter-spacing: 0.01em; margin-bottom: 0.5em; }
     .reveal section { text-align: left; }
     .reveal section.center { text-align: center; }
-    .reveal .subtitle { color: var(--muted); font-size: 0.75em; }
+    .reveal p { line-height: 1.5; margin: 0.5em 0; }
+    .reveal ul, .reveal ol { display: block; margin-left: 1.1em; }
+    .reveal li { margin-bottom: 0.42em; line-height: 1.45; }
+    .reveal .subtitle { color: var(--muted); font-size: 0.72em; line-height: 1.5; }
+    .reveal .dark-bg, .reveal .dark-bg h1, .reveal .dark-bg h2, .reveal .dark-bg p { color: #fff; }
+
+    /* 顶部给灵动岛让出安全区 */
+    .reveal .slides section { padding-top: 1.4em; }
+
     .reveal code { font-family: "SF Mono", Menlo, Consolas, monospace; }
-    .reveal pre { width: 100%; box-shadow: none; border-radius: 8px; font-size: 0.5em; }
-    .reveal pre code { padding: 1em; border-radius: 8px; max-height: 460px; }
-    .reveal ul { display: block; }
-    .reveal li { margin-bottom: 0.35em; }
-    .reveal .hint {
-      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-      font-size: 14px; color: var(--muted); opacity: 0.75; z-index: 30;
+    .reveal pre {
+      width: 100%; box-shadow: none; margin: 0.6em 0;
+      font-size: 13px; line-height: 1.42;
     }
-    .reveal .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; align-items: start; }
+    .reveal pre code { padding: 0.85em 0.9em; border-radius: 9px; max-height: 380px; }
+
     .reveal .box {
-      border: 1px solid #e3e6ea; border-radius: 10px; padding: 0.6em 0.9em;
-      background: #fafbfc; font-size: 0.82em;
+      border: 1px solid #e3e6ea; border-radius: 10px; padding: 0.6em 0.75em;
+      background: #fafbfc; font-size: 0.8em; line-height: 1.5;
     }
     .reveal .kbd {
       display: inline-block; border: 1px solid #cbd2d9; border-bottom-width: 2px;
-      border-radius: 5px; padding: 0 8px; background: #fff; font-size: 0.85em;
-      font-family: "SF Mono", Menlo, Consolas, monospace;
+      border-radius: 5px; padding: 0 6px; background: #fff;
+      font-size: 0.82em; font-family: "SF Mono", Menlo, Consolas, monospace;
     }
-    .reveal table { font-size: 0.72em; }
-    .reveal .dark-bg, .reveal .dark-bg h1, .reveal .dark-bg h2, .reveal .dark-bg p { color: #fff; }
-    .reveal .big-num { font-size: 2.4em; color: var(--accent); font-weight: 700; line-height: 1.1; }
-    @media print { .reveal .hint { display: none; } }
+    .reveal table { font-size: 0.68em; width: 100%; }
+    .reveal table th, .reveal table td { padding: 0.32em 0.4em; }
+    .reveal .big-num { font-size: 2.1em; color: var(--accent); font-weight: 700; }
+
+    /* 窄画布里的公式:缩小并允许横向滚动,绝不撑破版面 */
+    .reveal .katex-display { font-size: 0.74em; margin: 0.55em 0; overflow-x: auto; overflow-y: hidden; }
+    .reveal .katex { font-size: 1em; }
+
+    .reveal .hint {
+      position: absolute; z-index: 35;
+      bottom: 20px; left: 0; right: 0; text-align: center;
+      font-size: 11px; color: var(--muted); opacity: 0.8;
+    }
+    .reveal .progress { height: 3px; }
+    .reveal .slide-number { font-size: 11px; bottom: 16px; right: 10px; background: none; color: var(--muted); }
+
+    /* 导出 PDF(?print-pdf)时脱掉手机外壳,让 reveal 自己控制页面尺寸 */
+    @media print {
+      .hint, .island, .home-bar { display: none; }
+      body { display: block; }
+      body > .phone {
+        width: 100%; height: 100%;
+        border-radius: 0; box-shadow: none; overflow: visible;
+      }
+    }
   </style>
 </head>
 
 <body>
-<div class="reveal">
-<div class="slides">
+<div class="phone">
+  <div class="island"></div>
 
-  <!-- ============ 1. 封面 ============ -->
-  <section class="center" data-background-gradient="linear-gradient(to bottom right, #1e3a5f, #2a76dd)">
-    <div class="dark-bg">
-      <h1>reveal.js 是怎么回事</h1>
-      <p class="subtitle" style="color:#cfe0f7">用一份 HTML 文件做的幻灯片<br>
-      —— 这一页本身就是它的产物</p>
-    </div>
-    <aside class="notes">
-      这是演讲者备注,按 S 键会弹出单独的演讲者视图。
-    </aside>
-  </section>
+  <div class="reveal">
+  <div class="slides">
 
-  <!-- ============ 2. 一句话说清 ============ -->
-  <section>
-    <h2>一句话:幻灯片 = 网页</h2>
-    <p>没有 <code>.pptx</code>,只有一个 <code>index.html</code>。每一页是一个 <code>&lt;section&gt;</code>:</p>
-    <pre><code class="language-html" data-trim data-line-numbers="1-7|2-3|5-6">&lt;div class="slides"&gt;
+    <!-- ============ 1. 封面 ============ -->
+    <section class="center" data-background-gradient="linear-gradient(160deg, #1e3a5f 0%, #2a76dd 100%)">
+      <div class="dark-bg">
+        <h1>reveal.js<br>是怎么回事</h1>
+        <p class="subtitle" style="color:#cfe0f7; margin-top:1.2em">
+          一份 HTML 文件做的幻灯片<br>
+          竖版 · 402 × 874<br>
+          <span style="opacity:.75">iPhone 16 Pro 画布</span>
+        </p>
+      </div>
+      <aside class="notes">这是演讲者备注,按 S 弹出单独的演讲者视图。</aside>
+    </section>
+
+    <!-- ============ 2. 一句话 ============ -->
+    <section>
+      <h2>一句话:<br>幻灯片就是网页</h2>
+      <p>没有 <code>.pptx</code>,只有一个 <code>index.html</code>。<br>一页 = 一个 <code>&lt;section&gt;</code>:</p>
+      <pre><code class="language-html" data-trim data-line-numbers="1-6|2-3">&lt;div class="slides"&gt;
   &lt;section&gt;
     &lt;h2&gt;第一页&lt;/h2&gt;
   &lt;/section&gt;
-  &lt;section&gt;
-    &lt;h2&gt;第二页&lt;/h2&gt;
-  &lt;/section&gt;
+  &lt;section&gt;第二页&lt;/section&gt;
 &lt;/div&gt;</code></pre>
-    <p class="subtitle">↑ 代码块可以逐段高亮(这一段就演示了三次高亮跳转,继续按空格)</p>
-    <aside class="notes">data-line-numbers 用竖线分隔,每按一次前进就换一组高亮行。</aside>
-  </section>
+      <p class="subtitle">↑ 代码能逐段高亮,再按一次空格试试</p>
+    </section>
 
-  <!-- ============ 3. 导航是二维的(垂直堆叠) ============ -->
-  <section>
+    <!-- ============ 3. 画布就是两个数字 ============ -->
     <section>
-      <h2>导航是二维的</h2>
-      <p>左右 = 章节之间;<strong>上下 = 同一章节内部展开</strong>。</p>
-      <p>右下角出现了 <span class="kbd">↓</span> 箭头 —— 现在按<strong>向下</strong>键,而不是空格。</p>
-      <div class="box" style="margin-top:1em">
-        主线讲给所有人听,细节埋在向下的分支里。听众问细节时才下钻,不问就直接右移跳过。
+      <h2>为什么是竖的</h2>
+      <p>画布尺寸就是配置里的两个数字,内容会自动缩放去填满屏幕:</p>
+      <pre><code class="language-javascript" data-trim data-line-numbers="2-3">Reveal.initialize({
+  width:  402,   // iPhone 16 Pro
+  height: 874,   // 逻辑分辨率
+});</code></pre>
+      <div class="box">
+        改成 <code>1280 × 720</code> 就变回投影仪横版。<strong>同一份内容,换个画布即可</strong> —— 手机竖屏刷、投影横屏讲。
       </div>
     </section>
+
+    <!-- ============ 4. 二维导航 ============ -->
     <section>
-      <h3>你下钻进来了</h3>
-      <p>这是上一页的"子页"。写法是 <code>&lt;section&gt;</code> 套 <code>&lt;section&gt;</code>:</p>
-      <pre><code class="language-html" data-trim>&lt;section&gt;              &lt;!-- 一列 --&gt;
+      <section>
+        <h2>导航是二维的</h2>
+        <p>左右 = 章节之间<br>
+           <strong>上下 = 同一章节内部展开</strong></p>
+        <p>下方出现了 <span class="kbd">↓</span> —— 现在按<strong>向下</strong>键(手机上向上滑)。</p>
+        <div class="box" style="margin-top:0.7em">
+          主线讲给所有人听,细节埋在向下的分支里。被追问才下钻,不问就右移跳过。
+        </div>
+      </section>
+      <section>
+        <h3>你下钻进来了</h3>
+        <p>写法是 <code>&lt;section&gt;</code> 套 <code>&lt;section&gt;</code>:</p>
+        <pre><code class="language-html" data-trim>&lt;section&gt;
   &lt;section&gt;主线&lt;/section&gt;
   &lt;section&gt;细节 1&lt;/section&gt;
   &lt;section&gt;细节 2&lt;/section&gt;
 &lt;/section&gt;</code></pre>
+      </section>
+      <section>
+        <h3>再往下一层</h3>
+        <p>深度不限。</p>
+        <p>按 <span class="kbd">Esc</span> 可以鸟瞰整份幻灯片的二维网格,一眼看清结构。</p>
+        <p class="subtitle">看完继续向下或空格。</p>
+      </section>
     </section>
+
+    <!-- ============ 5. fragment ============ -->
     <section>
-      <h3>再向下一层</h3>
-      <p>深度不限。按 <span class="kbd">Esc</span> 可以鸟瞰整个幻灯片的二维网格,一眼看清结构。</p>
-      <p class="subtitle">看完请继续按向下或空格。</p>
+      <h2>要点逐条出现</h2>
+      <p>加一个 <code>class="fragment"</code> 就行:</p>
+      <ul>
+        <li class="fragment">第一条:先出现</li>
+        <li class="fragment">第二条:再出现</li>
+        <li class="fragment highlight-blue">第三条:出现时变色</li>
+        <li class="fragment fade-up">第四条:从下方淡入</li>
+      </ul>
+      <pre class="fragment"><code class="language-html" data-trim>&lt;li class="fragment"&gt;先出现&lt;/li&gt;
+&lt;li class="fragment fade-up"&gt;淡入&lt;/li&gt;</code></pre>
     </section>
-  </section>
 
-  <!-- ============ 4. 渐进显示 fragment ============ -->
-  <section>
-    <h2>要点逐条出现</h2>
-    <p>给元素加 <code>class="fragment"</code> 就行:</p>
-    <ul>
-      <li class="fragment">第一条:先出现</li>
-      <li class="fragment">第二条:再出现</li>
-      <li class="fragment highlight-blue">第三条:出现时还能变色</li>
-      <li class="fragment fade-up">第四条:从下方淡入</li>
-    </ul>
-    <pre class="fragment"><code class="language-html" data-trim>&lt;li class="fragment"&gt;先出现&lt;/li&gt;
-&lt;li class="fragment highlight-blue"&gt;变蓝&lt;/li&gt;
-&lt;li class="fragment fade-up"&gt;下方淡入&lt;/li&gt;</code></pre>
-  </section>
+    <!-- ============ 6. LaTeX ============ -->
+    <section>
+      <h2>LaTeX 是一等公民</h2>
+      <p>正文直接写 <code>$...$</code>、<code>$$...$$</code>,KaTeX 负责渲染。</p>
+      <p style="margin-top:0.7em">Kohn–Sham 方程:</p>
+      <p>$$\left[-\frac{\hbar^2}{2m}\nabla^2 + V_{\text{eff}}\right]\psi_i = \varepsilon_i\,\psi_i$$</p>
+      <p style="font-size:0.85em">其中 $V_{\text{eff}} = V_{\text{ext}} + V_{\text{H}} + V_{\text{xc}}$,
+         而 $V_{\text{xc}} = \delta E_{\text{xc}}[n]/\delta n$。</p>
+      <p class="fragment" style="font-size:0.85em; margin-top:0.6em">电子–声子矩阵元:
+      $$g_{mn\nu} = \sqrt{\tfrac{\hbar}{2\omega_{\mathbf{q}\nu}}}\,
+        \langle \psi_{m\mathbf{k+q}} \mid \partial_{\mathbf{q}\nu} V \mid \psi_{n\mathbf{k}} \rangle$$</p>
+      <aside class="notes">公式和正文是同一套 LaTeX,不用截图粘贴,改公式就是改文本。</aside>
+    </section>
 
-  <!-- ============ 5. LaTeX 公式 ============ -->
-  <section>
-    <h2>LaTeX 公式是一等公民</h2>
-    <p>直接写 <code>$...$</code> 和 <code>$$...$$</code>,KaTeX 负责渲染:</p>
-    <p>Kohn–Sham 方程:</p>
-    <p>$$\left[-\frac{\hbar^2}{2m}\nabla^2 + V_{\text{eff}}(\mathbf{r})\right]\psi_i(\mathbf{r}) = \varepsilon_i\,\psi_i(\mathbf{r})$$</p>
-    <p>其中有效势 $V_{\text{eff}} = V_{\text{ext}} + V_{\text{H}} + V_{\text{xc}}$,交换关联势 $V_{\text{xc}} = \delta E_{\text{xc}}[n]/\delta n(\mathbf{r})$。</p>
-    <p class="fragment">电子–声子矩阵元:
-    $$g_{mn\nu}(\mathbf{k},\mathbf{q}) = \sqrt{\frac{\hbar}{2\omega_{\mathbf{q}\nu}}}\,
-    \langle \psi_{m\mathbf{k}+\mathbf{q}} \mid \partial_{\mathbf{q}\nu} V \mid \psi_{n\mathbf{k}} \rangle$$</p>
-    <aside class="notes">公式和正文是同一套 LaTeX,不用截图粘贴,改公式就是改文本。</aside>
-  </section>
-
-  <!-- ============ 6. 代码高亮 ============ -->
-  <section>
-    <h2>代码高亮 + 分步讲解</h2>
-    <pre><code class="language-bash" data-trim data-line-numbers="|2-4|6-7|9-10">#!/bin/bash
+    <!-- ============ 7. 代码分步 ============ -->
+    <section>
+      <h2>代码分步讲解</h2>
+      <pre><code class="language-bash" data-trim data-line-numbers="|2-4|6|8-9">#!/bin/bash
 #SBATCH -p cpu36memory192
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=6
 #SBATCH --cpus-per-task=6
 #SBATCH -t 2-00:00:00
-#SBATCH -J demo
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-mpirun -np $SLURM_NTASKS pw.x -i scf.in > scf.out</code></pre>
-    <p class="subtitle">同一段代码,按空格依次聚焦:资源 → 时限/名字 → 运行命令。讲代码时特别好用。</p>
-  </section>
+mpirun -np $SLURM_NTASKS pw.x -i scf.in</code></pre>
+      <p class="subtitle">同一段代码依次聚焦:资源 → 时限 → 运行命令。讲代码时特别好用。</p>
+    </section>
 
-  <!-- ============ 7. 排版能力 ============ -->
-  <section>
-    <h2>版面:就是 CSS</h2>
-    <div class="two-col">
-      <div>
-        <div class="box"><strong>左栏</strong><br>用 CSS Grid / Flexbox 随便排,不受 PPT 模板框死。</div>
-        <p style="margin-top:0.8em"><span class="big-num">1</span> 个文件<br>
-        <span class="big-num">0</span> 个依赖安装</p>
-      </div>
-      <div>
-        <table>
-          <thead><tr><th>能力</th><th>PowerPoint</th><th>reveal.js</th></tr></thead>
-          <tbody>
-            <tr><td>版本管理</td><td>二进制,难 diff</td><td>纯文本,git 友好</td></tr>
-            <tr><td>公式</td><td>公式编辑器</td><td>原生 LaTeX</td></tr>
-            <tr><td>分享</td><td>发文件</td><td>发链接</td></tr>
-            <tr><td>协作</td><td>互发附件</td><td>Pull Request</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
+    <!-- ============ 8. 版面 ============ -->
+    <section>
+      <h2>版面:就是 CSS</h2>
+      <p><span class="big-num">1</span> 个文件 &nbsp;·&nbsp; <span class="big-num">0</span> 个依赖安装</p>
+      <table>
+        <thead><tr><th></th><th>PowerPoint</th><th>reveal.js</th></tr></thead>
+        <tbody>
+          <tr><td>版本管理</td><td>二进制</td><td>纯文本,git 友好</td></tr>
+          <tr><td>公式</td><td>公式编辑器</td><td>原生 LaTeX</td></tr>
+          <tr><td>分享</td><td>发文件</td><td>发链接</td></tr>
+          <tr><td>协作</td><td>互发附件</td><td>Pull Request</td></tr>
+        </tbody>
+      </table>
+      <p class="subtitle" style="margin-top:0.7em">不受 PPT 模板框死:Grid、Flexbox、动画随便用。</p>
+    </section>
 
-  <!-- ============ 8. 背景 ============ -->
-  <section data-background-color="#0b1d33">
-    <div class="dark-bg">
-      <h2>整页背景随手换</h2>
-      <p>纯色、渐变、图片、视频、iframe 都行:</p>
-      <pre><code class="language-html" data-trim>&lt;section data-background-color="#0b1d33"&gt;
+    <!-- ============ 9. 背景 ============ -->
+    <section data-background-color="#0b1d33">
+      <div class="dark-bg">
+        <h2>整页背景随手换</h2>
+        <p>纯色、渐变、图片、视频、iframe:</p>
+        <pre><code class="language-html" data-trim>&lt;section data-background-color="#0b1d33"&gt;
 &lt;section data-background-image="band.png"&gt;
-&lt;section data-background-video="md.mp4" data-background-video-loop&gt;
-&lt;section data-background-iframe="https://example.org"&gt;</code></pre>
-      <p class="subtitle" style="color:#8fa9c6">分子动力学轨迹、能带演化动画可以直接当背景铺满整页。</p>
-    </div>
-  </section>
+&lt;section data-background-video="md.mp4"&gt;
+&lt;section data-background-iframe="..."&gt;</code></pre>
+        <p class="subtitle" style="color:#8fa9c6">
+          分子动力学轨迹、能带演化动画可以直接铺满整页当背景。
+        </p>
+      </div>
+    </section>
 
-  <!-- ============ 9. 实用快捷键 ============ -->
-  <section>
-    <h2>现在就能试的快捷键</h2>
-    <ul>
-      <li><span class="kbd">Esc</span> / <span class="kbd">O</span> — 鸟瞰全部幻灯片(网格视图)</li>
-      <li><span class="kbd">S</span> — 演讲者视图:备注 + 计时 + 下一页预览(投影时留给自己看)</li>
-      <li><span class="kbd">F</span> — 全屏;<span class="kbd">B</span> — 黑屏(把注意力拉回你身上)</li>
-      <li><span class="kbd">Alt</span> + 点击 — 局部放大某处</li>
-      <li><span class="kbd">?</span> — 列出所有快捷键</li>
-    </ul>
-    <div class="box fragment" style="margin-top:0.8em">
-      <strong>要 PDF?</strong> 在网址后加 <code>?print-pdf</code>,再用浏览器打印 → 另存为 PDF。
-      投影仪没网、会场断网时的保险方案。
-    </div>
-  </section>
+    <!-- ============ 10. 操作 ============ -->
+    <section>
+      <h2>现在就能试</h2>
+      <p style="font-size:0.9em"><strong>手机上:</strong>左右滑翻章节,上下滑走子页。</p>
+      <p style="font-size:0.9em; margin-top:0.6em"><strong>电脑上:</strong></p>
+      <ul style="font-size:0.86em">
+        <li><span class="kbd">Esc</span> 鸟瞰全部幻灯片</li>
+        <li><span class="kbd">S</span> 演讲者视图(备注+计时)</li>
+        <li><span class="kbd">F</span> 全屏 · <span class="kbd">B</span> 黑屏</li>
+        <li><span class="kbd">?</span> 列出所有快捷键</li>
+      </ul>
+      <div class="box fragment" style="margin-top:0.6em">
+        <strong>要 PDF?</strong> 网址后加 <code>?print-pdf</code>,浏览器打印 → 另存为 PDF。
+      </div>
+    </section>
 
-  <!-- ============ 10. 怎么改成你自己的 ============ -->
-  <section>
-    <h2>怎么改成你自己的</h2>
-    <ol>
-      <li>在 GitHub 上编辑 <code>index.html</code>(直接网页里点铅笔图标就行)</li>
-      <li>照着抄一个 <code>&lt;section&gt;</code> 块,换掉里面的字</li>
-      <li>Commit → 等约 1 分钟,链接上的内容自动更新</li>
-    </ol>
-    <p style="margin-top:0.8em">换主题:改 <code>&lt;head&gt;</code> 里那一行的文件名即可 ——</p>
-    <pre><code class="language-html" data-trim>theme/white.css   &lt;!-- 当前 --&gt;
-theme/black.css   theme/league.css   theme/serif.css
-theme/moon.css    theme/solarized.css   theme/dracula.css</code></pre>
-  </section>
+    <!-- ============ 11. 改成自己的 ============ -->
+    <section>
+      <h2>改成你自己的</h2>
+      <ol style="font-size:0.9em">
+        <li>在 GitHub 上点 <code>index.html</code> 的铅笔图标</li>
+        <li>抄一个 <code>&lt;section&gt;</code> 块,换掉里面的字</li>
+        <li>Commit → 约 1 分钟后链接自动更新</li>
+      </ol>
+      <p style="margin-top:0.7em; font-size:0.9em">换主题只改 <code>&lt;head&gt;</code> 里一行:</p>
+      <pre><code class="language-html" data-trim>theme/white.css   &lt;!-- 当前 --&gt;
+theme/black.css   theme/league.css
+theme/moon.css    theme/dracula.css</code></pre>
+    </section>
 
-  <!-- ============ 11. 结尾 ============ -->
-  <section class="center" data-background-gradient="linear-gradient(to bottom right, #1e3a5f, #2a76dd)">
-    <div class="dark-bg">
-      <h2>就这么回事</h2>
-      <p style="font-size:0.85em">一个 HTML 文件 + 一个 GitHub 仓库 = 一份能用链接分享、能 git 回溯的幻灯片。</p>
-      <p class="subtitle" style="color:#cfe0f7; margin-top:1.2em">
-        按 <span class="kbd">Esc</span> 回看全貌 &nbsp;·&nbsp; 官方文档 revealjs.com
-      </p>
-    </div>
-  </section>
+    <!-- ============ 12. 结尾 ============ -->
+    <section class="center" data-background-gradient="linear-gradient(160deg, #1e3a5f 0%, #2a76dd 100%)">
+      <div class="dark-bg">
+        <h2>就这么回事</h2>
+        <p style="font-size:0.82em; line-height:1.6">
+          一个 HTML 文件<br>+ 一个 GitHub 仓库<br>
+          = 能用链接分享、能 git 回溯的幻灯片
+        </p>
+        <p class="subtitle" style="color:#cfe0f7; margin-top:1.4em">
+          按 <span class="kbd">Esc</span> 回看全貌<br>
+          官方文档 revealjs.com
+        </p>
+      </div>
+    </section>
 
+  </div>
+
+  <div class="hint">滑动 / 空格翻页 · <b>Esc</b> 鸟瞰 · <b>S</b> 备注 · <b>?</b> 快捷键</div>
+  </div>
+
+  <div class="home-bar"></div>
 </div>
-</div>
-
-<div class="hint">空格 / 方向键翻页 &nbsp;·&nbsp; <b>Esc</b> 鸟瞰 &nbsp;·&nbsp; <b>S</b> 演讲者视图 &nbsp;·&nbsp; <b>?</b> 快捷键</div>
 
 <script type="module">
   import Reveal from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.esm.js';
@@ -243,13 +348,20 @@ theme/moon.css    theme/solarized.css   theme/dracula.css</code></pre>
   import Math from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.esm.js';
 
   Reveal.initialize({
+    // iPhone 16 Pro 竖版逻辑分辨率
+    width: 402,
+    height: 874,
+    margin: 0.05,
+    minScale: 0.2,
+    maxScale: 2.0,
+
     hash: true,
-    slideNumber: 'c/t',
-    transition: 'slide',
     center: false,
-    width: 1280,
-    height: 720,
-    margin: 0.06,
+    transition: 'slide',
+    slideNumber: 'c/t',
+    controls: true,
+    controlsLayout: 'edges',
+
     plugins: [Highlight, Notes, Markdown, Math.KaTeX],
     katex: {
       version: '0.16.11',

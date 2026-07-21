@@ -1,8 +1,23 @@
-# reveal.js 幻灯片示例
+# reveal.js 竖版幻灯片示例
 
-一份用 [reveal.js](https://revealjs.com) 做的幻灯片,内容就是「reveal.js 是怎么回事」。
+一份用 [reveal.js](https://revealjs.com) 做的**竖版**幻灯片,画布是 iPhone 16 Pro 的逻辑分辨率 **402 × 874**,内容就是「reveal.js 是怎么回事」。
 
 **在线观看:** https://myang0217.github.io/reveal-ppt-demo/
+
+在电脑上打开会看到幻灯片装在一台 iPhone 里(带灵动岛);用手机打开则直接铺满全屏。
+
+## 画布尺寸
+
+竖版与横版的区别只是配置里的两个数字:
+
+```js
+Reveal.initialize({
+  width:  402,   // iPhone 16 Pro 逻辑分辨率
+  height: 874,
+});
+```
+
+改成 `1280 × 720` 即变回投影仪横版 —— 同一份内容,换个画布。
 
 ## 这是什么
 
