@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>reveal.js 是怎么回事</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+
+  <style>
+    :root {
+      --accent: #2a76dd;
+      --muted: #6b7280;
+    }
+    .reveal {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC",
+                   "Source Han Sans SC", "Helvetica Neue", Arial, sans-serif;
+    }
+    .reveal h1, .reveal h2, .reveal h3 { font-weight: 600; letter-spacing: 0.02em; }
+    .reveal h1 { font-size: 2.2em; }
+    .reveal h2 { font-size: 1.5em; }
+    .reveal section { text-align: left; }
+    .reveal section.center { text-align: center; }
+    .reveal .subtitle { color: var(--muted); font-size: 0.75em; }
+    .reveal code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+    .reveal pre { width: 100%; box-shadow: none; border-radius: 8px; font-size: 0.5em; }
+    .reveal pre code { padding: 1em; border-radius: 8px; max-height: 460px; }
+    .reveal ul { display: block; }
+    .reveal li { margin-bottom: 0.35em; }
+    .reveal .hint {
+      position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+      font-size: 14px; color: var(--muted); opacity: 0.75; z-index: 30;
+    }
+    .reveal .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; align-items: start; }
+    .reveal .box {
+      border: 1px solid #e3e6ea; border-radius: 10px; padding: 0.6em 0.9em;
+      background: #fafbfc; font-size: 0.82em;
+    }
+    .reveal .kbd {
+      display: inline-block; border: 1px solid #cbd2d9; border-bottom-width: 2px;
+      border-radius: 5px; padding: 0 8px; background: #fff; font-size: 0.85em;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+    }
+    .reveal table { font-size: 0.72em; }
+    .reveal .dark-bg, .reveal .dark-bg h1, .reveal .dark-bg h2, .reveal .dark-bg p { color: #fff; }
+    .reveal .big-num { font-size: 2.4em; color: var(--accent); font-weight: 700; line-height: 1.1; }
+    @media print { .reveal .hint { display: none; } }
+  </style>
+</head>
+
+<body>
+<div class="reveal">
+<div class="slides">
+
+  <!-- ============ 1. 封面 ============ -->
+  <section class="center" data-background-gradient="linear-gradient(to bottom right, #1e3a5f, #2a76dd)">
+    <div class="dark-bg">
+      <h1>reveal.js 是怎么回事</h1>
+      <p class="subtitle" style="color:#cfe0f7">用一份 HTML 文件做的幻灯片<br>
+      —— 这一页本身就是它的产物</p>
+    </div>
+    <aside class="notes">
+      这是演讲者备注,按 S 键会弹出单独的演讲者视图。
+    </aside>
+  </section>
+
+  <!-- ============ 2. 一句话说清 ============ -->
+  <section>
+    <h2>一句话:幻灯片 = 网页</h2>
+    <p>没有 <code>.pptx</code>,只有一个 <code>index.html</code>。每一页是一个 <code>&lt;section&gt;</code>:</p>
+    <pre><code class="language-html" data-trim data-line-numbers="1-7|2-3|5-6">&lt;div class="slides"&gt;
+  &lt;section&gt;
+    &lt;h2&gt;第一页&lt;/h2&gt;
+  &lt;/section&gt;
+  &lt;section&gt;
+    &lt;h2&gt;第二页&lt;/h2&gt;
+  &lt;/section&gt;
+&lt;/div&gt;</code></pre>
+    <p class="subtitle">↑ 代码块可以逐段高亮(这一段就演示了三次高亮跳转,继续按空格)</p>
+    <aside class="notes">data-line-numbers 用竖线分隔,每按一次前进就换一组高亮行。</aside>
+  </section>
+
+  <!-- ============ 3. 导航是二维的(垂直堆叠) ============ -->
+  <section>
+    <section>
+      <h2>导航是二维的</h2>
+      <p>左右 = 章节之间;<strong>上下 = 同一章节内部展开</strong>。</p>
+      <p>右下角出现了 <span class="kbd">↓</span> 箭头 —— 现在按<strong>向下</strong>键,而不是空格。</p>
+      <div class="box" style="margin-top:1em">
+        主线讲给所有人听,细节埋在向下的分支里。听众问细节时才下钻,不问就直接右移跳过。
+      </div>
+    </section>
+    <section>
+      <h3>你下钻进来了</h3>
+      <p>这是上一页的"子页"。写法是 <code>&lt;section&gt;</code> 套 <code>&lt;section&gt;</code>:</p>
+      <pre><code class="language-html" data-trim>&lt;section&gt;              &lt;!-- 一列 --&gt;
+  &lt;section&gt;主线&lt;/section&gt;
+  &lt;section&gt;细节 1&lt;/section&gt;
+  &lt;section&gt;细节 2&lt;/section&gt;
+&lt;/section&gt;</code></pre>
+    </section>
+    <section>
+      <h3>再向下一层</h3>
+      <p>深度不限。按 <span class="kbd">Esc</span> 可以鸟瞰整个幻灯片的二维网格,一眼看清结构。</p>
+      <p class="subtitle">看完请继续按向下或空格。</p>
+    </section>
+  </section>
+
+  <!-- ============ 4. 渐进显示 fragment ============ -->
+  <section>
+    <h2>要点逐条出现</h2>
+    <p>给元素加 <code>class="fragment"</code> 就行:</p>
+    <ul>
+      <li class="fragment">第一条:先出现</li>
+      <li class="fragment">第二条:再出现</li>
+      <li class="fragment highlight-blue">第三条:出现时还能变色</li>
+      <li class="fragment fade-up">第四条:从下方淡入</li>
+    </ul>
+    <pre class="fragment"><code class="language-html" data-trim>&lt;li class="fragment"&gt;先出现&lt;/li&gt;
+&lt;li class="fragment highlight-blue"&gt;变蓝&lt;/li&gt;
+&lt;li class="fragment fade-up"&gt;下方淡入&lt;/li&gt;</code></pre>
+  </section>
+
+  <!-- ============ 5. LaTeX 公式 ============ -->
+  <section>
+    <h2>LaTeX 公式是一等公民</h2>
+    <p>直接写 <code>$...$</code> 和 <code>$$...$$</code>,KaTeX 负责渲染:</p>
+    <p>Kohn–Sham 方程:</p>
+    <p>$$\left[-\frac{\hbar^2}{2m}\nabla^2 + V_{\text{eff}}(\mathbf{r})\right]\psi_i(\mathbf{r}) = \varepsilon_i\,\psi_i(\mathbf{r})$$</p>
+    <p>其中有效势 $V_{\text{eff}} = V_{\text{ext}} + V_{\text{H}} + V_{\text{xc}}$,交换关联势 $V_{\text{xc}} = \delta E_{\text{xc}}[n]/\delta n(\mathbf{r})$。</p>
+    <p class="fragment">电子–声子矩阵元:
+    $$g_{mn\nu}(\mathbf{k},\mathbf{q}) = \sqrt{\frac{\hbar}{2\omega_{\mathbf{q}\nu}}}\,
+    \langle \psi_{m\mathbf{k}+\mathbf{q}} \mid \partial_{\mathbf{q}\nu} V \mid \psi_{n\mathbf{k}} \rangle$$</p>
+    <aside class="notes">公式和正文是同一套 LaTeX,不用截图粘贴,改公式就是改文本。</aside>
+  </section>
+
+  <!-- ============ 6. 代码高亮 ============ -->
+  <section>
+    <h2>代码高亮 + 分步讲解</h2>
+    <pre><code class="language-bash" data-trim data-line-numbers="|2-4|6-7|9-10">#!/bin/bash
+#SBATCH -p cpu36memory192
+#SBATCH -N 1
+#SBATCH --ntasks-per-node=6
+#SBATCH --cpus-per-task=6
+#SBATCH -t 2-00:00:00
+#SBATCH -J demo
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+mpirun -np $SLURM_NTASKS pw.x -i scf.in > scf.out</code></pre>
+    <p class="subtitle">同一段代码,按空格依次聚焦:资源 → 时限/名字 → 运行命令。讲代码时特别好用。</p>
+  </section>
+
+  <!-- ============ 7. 排版能力 ============ -->
+  <section>
+    <h2>版面:就是 CSS</h2>
+    <div class="two-col">
+      <div>
+        <div class="box"><strong>左栏</strong><br>用 CSS Grid / Flexbox 随便排,不受 PPT 模板框死。</div>
+        <p style="margin-top:0.8em"><span class="big-num">1</span> 个文件<br>
+        <span class="big-num">0</span> 个依赖安装</p>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>能力</th><th>PowerPoint</th><th>reveal.js</th></tr></thead>
+          <tbody>
+            <tr><td>版本管理</td><td>二进制,难 diff</td><td>纯文本,git 友好</td></tr>
+            <tr><td>公式</td><td>公式编辑器</td><td>原生 LaTeX</td></tr>
+            <tr><td>分享</td><td>发文件</td><td>发链接</td></tr>
+            <tr><td>协作</td><td>互发附件</td><td>Pull Request</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. 背景 ============ -->
+  <section data-background-color="#0b1d33">
+    <div class="dark-bg">
+      <h2>整页背景随手换</h2>
+      <p>纯色、渐变、图片、视频、iframe 都行:</p>
+      <pre><code class="language-html" data-trim>&lt;section data-background-color="#0b1d33"&gt;
+&lt;section data-background-image="band.png"&gt;
+&lt;section data-background-video="md.mp4" data-background-video-loop&gt;
+&lt;section data-background-iframe="https://example.org"&gt;</code></pre>
+      <p class="subtitle" style="color:#8fa9c6">分子动力学轨迹、能带演化动画可以直接当背景铺满整页。</p>
+    </div>
+  </section>
+
+  <!-- ============ 9. 实用快捷键 ============ -->
+  <section>
+    <h2>现在就能试的快捷键</h2>
+    <ul>
+      <li><span class="kbd">Esc</span> / <span class="kbd">O</span> — 鸟瞰全部幻灯片(网格视图)</li>
+      <li><span class="kbd">S</span> — 演讲者视图:备注 + 计时 + 下一页预览(投影时留给自己看)</li>
+      <li><span class="kbd">F</span> — 全屏;<span class="kbd">B</span> — 黑屏(把注意力拉回你身上)</li>
+      <li><span class="kbd">Alt</span> + 点击 — 局部放大某处</li>
+      <li><span class="kbd">?</span> — 列出所有快捷键</li>
+    </ul>
+    <div class="box fragment" style="margin-top:0.8em">
+      <strong>要 PDF?</strong> 在网址后加 <code>?print-pdf</code>,再用浏览器打印 → 另存为 PDF。
+      投影仪没网、会场断网时的保险方案。
+    </div>
+  </section>
+
+  <!-- ============ 10. 怎么改成你自己的 ============ -->
+  <section>
+    <h2>怎么改成你自己的</h2>
+    <ol>
+      <li>在 GitHub 上编辑 <code>index.html</code>(直接网页里点铅笔图标就行)</li>
+      <li>照着抄一个 <code>&lt;section&gt;</code> 块,换掉里面的字</li>
+      <li>Commit → 等约 1 分钟,链接上的内容自动更新</li>
+    </ol>
+    <p style="margin-top:0.8em">换主题:改 <code>&lt;head&gt;</code> 里那一行的文件名即可 ——</p>
+    <pre><code class="language-html" data-trim>theme/white.css   &lt;!-- 当前 --&gt;
+theme/black.css   theme/league.css   theme/serif.css
+theme/moon.css    theme/solarized.css   theme/dracula.css</code></pre>
+  </section>
+
+  <!-- ============ 11. 结尾 ============ -->
+  <section class="center" data-background-gradient="linear-gradient(to bottom right, #1e3a5f, #2a76dd)">
+    <div class="dark-bg">
+      <h2>就这么回事</h2>
+      <p style="font-size:0.85em">一个 HTML 文件 + 一个 GitHub 仓库 = 一份能用链接分享、能 git 回溯的幻灯片。</p>
+      <p class="subtitle" style="color:#cfe0f7; margin-top:1.2em">
+        按 <span class="kbd">Esc</span> 回看全貌 &nbsp;·&nbsp; 官方文档 revealjs.com
+      </p>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div class="hint">空格 / 方向键翻页 &nbsp;·&nbsp; <b>Esc</b> 鸟瞰 &nbsp;·&nbsp; <b>S</b> 演讲者视图 &nbsp;·&nbsp; <b>?</b> 快捷键</div>
+
+<script type="module">
+  import Reveal from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.esm.js';
+  import Highlight from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.esm.js';
+  import Notes from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.esm.js';
+  import Markdown from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.esm.js';
+  import Math from 'https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.esm.js';
+
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    center: false,
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    plugins: [Highlight, Notes, Markdown, Math.KaTeX],
+    katex: {
+      version: '0.16.11',
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false }
+      ]
+    }
+  });
+</script>
+</body>
+</html>
